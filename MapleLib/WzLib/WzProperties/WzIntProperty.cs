@@ -59,7 +59,7 @@ namespace MapleLib.WzLib.WzProperties {
 		/// </summary>
 		public override WzPropertyType PropertyType => WzPropertyType.Int;
 
-		public override void WriteValue(WzBinaryWriter writer) {
+		public override void WriteValue(WzBinaryWriter writer, bool insideListWz) {
 			writer.Write((byte) 3);
 			writer.WriteCompressedInt(Value);
 		}

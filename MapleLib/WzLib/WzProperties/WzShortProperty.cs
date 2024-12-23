@@ -57,7 +57,7 @@ namespace MapleLib.WzLib.WzProperties {
 		/// </summary>
 		public override WzPropertyType PropertyType => WzPropertyType.Short;
 
-		public override void WriteValue(WzBinaryWriter writer) {
+		public override void WriteValue(WzBinaryWriter writer, bool insideListWz) {
 			writer.Write((byte) 2);
 			writer.Write(Value);
 		}

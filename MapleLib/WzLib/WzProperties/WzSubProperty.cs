@@ -105,15 +105,15 @@ namespace MapleLib.WzLib.WzProperties {
 		/// Write the WzSubProperty 
 		/// </summary>
 		/// <param name="writer"></param>
-		public override void WriteValue(WzBinaryWriter writer) {
+		public override void WriteValue(WzBinaryWriter writer, bool insideListWz) {
 			var bIsLuaProperty = properties.Count == 1 && properties[0] is WzLuaProperty;
 
 			if (!bIsLuaProperty) {
 				writer.WriteStringValue("Property", WzImage.WzImageHeaderByte_WithoutOffset,
-					WzImage.WzImageHeaderByte_WithOffset);
+					WzImage.WzImageHeaderByte_WithOffset, insideListWz);
 			}
 
-			WritePropertyList(writer, properties);
+			WritePropertyList(writer, properties, insideListWz);
 		}
 
 		/// <summary>

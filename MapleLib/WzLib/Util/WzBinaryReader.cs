@@ -15,6 +15,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
@@ -58,21 +59,21 @@ namespace MapleLib.WzLib.Util {
 			BaseStream.Position -= byOffset;
 		}
 
-		public string ReadStringAtOffset(long Offset) {
-			return ReadStringAtOffset(Offset, false);
+		public string ReadStringAtOffset(long Offset, bool insideListWz = false) {
+			return ReadStringAtOffset(Offset, false, insideListWz);
 		}
 
-		public string ReadStringAtOffset(long Offset, bool readByte) {
+		public string ReadStringAtOffset(long Offset, bool readByte, bool insideListWz = false) {
 			var CurrentOffset = BaseStream.Position;
 			BaseStream.Position = Offset;
 			if (readByte) ReadByte();
 
-			var ReturnString = ReadString();
+			var ReturnString = ReadString(insideListWz);
 			BaseStream.Position = CurrentOffset;
 			return ReturnString;
 		}
 
-		public override string ReadString() {
+		public string ReadString(bool insideListWz = false) {
 			var smallLength = base.ReadSByte();
 
 			if (smallLength == 0) return string.Empty;
@@ -93,7 +94,9 @@ namespace MapleLib.WzLib.Util {
 				for (var i = 0; i < length; i++) {
 					var encryptedChar = ReadUInt16();
 					encryptedChar ^= mask;
-					encryptedChar ^= (ushort) ((WzKey[i * 2 + 1] << 8) + WzKey[i * 2]);
+					if (insideListWz) {
+						encryptedChar ^= (ushort)((WzKey[i * 2 + 1] << 8) + WzKey[i * 2]);
+					}
 					retString.Append((char) encryptedChar);
 					mask++;
 				}
@@ -110,7 +113,9 @@ namespace MapleLib.WzLib.Util {
 				for (var i = 0; i < length; i++) {
 					var encryptedChar = ReadByte();
 					encryptedChar ^= mask;
-					encryptedChar ^= WzKey[i];
+					if (insideListWz) {
+						encryptedChar ^= WzKey[i];
+					}
 					retString.Append((char) encryptedChar);
 					mask++;
 				}
@@ -197,15 +202,15 @@ namespace MapleLib.WzLib.Util {
 			return outputString.ToString();
 		}
 
-		public string ReadStringBlock(uint offset) {
+		public string ReadStringBlock(uint offset, bool insideListWz = false) {
 			var type = ReadByte();
 			switch (type) {
 				case 0:
 				case WzImage.WzImageHeaderByte_WithoutOffset:
-					return ReadString();
+					return ReadString(insideListWz);
 				case 1:
 				case WzImage.WzImageHeaderByte_WithOffset:
-					return ReadStringAtOffset(offset + ReadInt32());
+					return ReadStringAtOffset(offset + ReadInt32(), insideListWz);
 				default:
 					throw new Exception($"Invalid ReadStringBlock {type} at position {BaseStream.Position} with offset {offset}");
 			}

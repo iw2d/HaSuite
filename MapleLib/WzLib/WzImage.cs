@@ -14,19 +14,16 @@
  * You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using MapleLib.Helpers;
 using MapleLib.WzLib.Util;
 using MapleLib.WzLib.WzProperties;
 
-namespace MapleLib.WzLib {
-	/// <summary>
-	/// A .img contained in a wz directory
-	/// </summary>
-	public class WzImage : WzObject, IPropertyContainer {
+namespace MapleLib.WzLib
+{
+    /// <summary>
+    /// A .img contained in a wz directory
+    /// </summary>
+    public class WzImage : WzObject, IPropertyContainer {
 		//TODO: nest wzproperties in a wzsubproperty inside of WzImage
 
 		/// <summary>
@@ -38,6 +35,12 @@ namespace MapleLib.WzLib {
 		/// bNewID_0x1b
 		/// </summary>
 		public const int WzImageHeaderByte_WithOffset = 0x1B;
+
+		internal bool InsideListWz {
+			get {
+				return WzFileParent.IsInsideListWz(FullPath); // should cache this
+			}
+		}
 
 		#region Fields
 
@@ -405,7 +408,7 @@ namespace MapleLib.WzLib {
 						return false; // unhandled for now, if it isnt an .lua image
 					}
 					case WzImageHeaderByte_WithoutOffset: {
-						var prop = reader.ReadString();
+						var prop = reader.ReadString(InsideListWz);
 						var val = reader.ReadUInt16();
 						if (prop != "Property" || val != 0) return false;
 
@@ -476,7 +479,7 @@ namespace MapleLib.WzLib {
 				if (!isWzIvSimilar) {
 					ListWzContainerImpl.ConvertKey(imgProp, wzKey, writer.WzKey);
 				}
-				imgProp.WriteValue(writer);
+				imgProp.WriteValue(writer, InsideListWz);
 
 				writer.StringCache.Clear();
 

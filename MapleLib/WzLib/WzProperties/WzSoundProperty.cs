@@ -90,10 +90,10 @@ namespace MapleLib.WzLib.WzProperties {
 		/// </summary>
 		public override WzPropertyType PropertyType => WzPropertyType.Sound;
 
-		public override void WriteValue(WzBinaryWriter writer) {
+		public override void WriteValue(WzBinaryWriter writer, bool insideListWz) {
 			var data = GetBytes(false);
 			writer.WriteStringValue("Sound_DX8", WzImage.WzImageHeaderByte_WithoutOffset,
-				WzImage.WzImageHeaderByte_WithOffset);
+				WzImage.WzImageHeaderByte_WithOffset, insideListWz);
 			writer.Write((byte) 0);
 			writer.WriteCompressedInt(data.Length);
 			writer.WriteCompressedInt(sampleLength);

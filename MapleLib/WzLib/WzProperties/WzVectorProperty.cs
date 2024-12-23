@@ -64,9 +64,9 @@ namespace MapleLib.WzLib.WzProperties {
 		/// </summary>
 		public override WzPropertyType PropertyType => WzPropertyType.Vector;
 
-		public override void WriteValue(WzBinaryWriter writer) {
+		public override void WriteValue(WzBinaryWriter writer, bool insideListWz) {
 			writer.WriteStringValue("Shape2D#Vector2D", WzImage.WzImageHeaderByte_WithoutOffset,
-				WzImage.WzImageHeaderByte_WithOffset);
+				WzImage.WzImageHeaderByte_WithOffset, insideListWz);
 			writer.WriteCompressedInt(X.Value);
 			writer.WriteCompressedInt(Y.Value);
 		}

@@ -416,7 +416,7 @@ namespace MapleLib.WzLib {
 
 			writer.WriteCompressedInt(entryCount);
 			foreach (var img in images) {
-				if (!writer.WriteWzObjectValue(img.name, WzDirectoryType.WzImage_4)) // true if written as an offset
+				if (!writer.WriteWzObjectValue(img.name, WzDirectoryType.WzImage_4, false)) // true if written as an offset
 				{
 				}
 
@@ -426,7 +426,7 @@ namespace MapleLib.WzLib {
 			}
 
 			foreach (var dir in subDirs) {
-				if (!writer.WriteWzObjectValue(dir.name, WzDirectoryType.WzDirectory_3)) // true if written as an offset
+				if (!writer.WriteWzObjectValue(dir.name, WzDirectoryType.WzDirectory_3, false)) // true if written as an offset
 				{
 				}
 

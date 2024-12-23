@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using MapleLib.WzLib.Util;
 using MapleLib.WzLib.WzProperties;
@@ -60,7 +61,7 @@ namespace MapleLib.WzLib {
 
 		public override WzObjectType ObjectType => WzObjectType.Property;
 
-		public abstract void WriteValue(WzBinaryWriter writer);
+		public abstract void WriteValue(WzBinaryWriter writer, bool insideListWz);
 
 		public abstract WzImageProperty DeepClone();
 
@@ -82,18 +83,18 @@ namespace MapleLib.WzLib {
 
 		#region Extended Properties Parsing
 
-		internal static void WritePropertyList(WzBinaryWriter writer, List<WzImageProperty> properties) {
+		internal static void WritePropertyList(WzBinaryWriter writer, List<WzImageProperty> properties, bool insideListWz) {
 			if (properties.Count == 1 && properties[0] is WzLuaProperty) {
-				properties[0].WriteValue(writer);
+				properties[0].WriteValue(writer, insideListWz);
 			} else {
 				writer.Write((ushort) 0);
 				writer.WriteCompressedInt(properties.Count);
 				foreach (var imgProperty in properties) {
-					writer.WriteStringValue(imgProperty.Name, 0x00, 0x01);
+					writer.WriteStringValue(imgProperty.Name, 0x00, 0x01, insideListWz);
 					if (imgProperty is WzExtended extended) {
-						WriteExtendedValue(writer, extended);
+						WriteExtendedValue(writer, extended, insideListWz);
 					} else {
-						imgProperty.WriteValue(writer);
+						imgProperty.WriteValue(writer, insideListWz);
 					}
 				}
 			}
@@ -127,7 +128,7 @@ namespace MapleLib.WzLib {
 			var entryCount = reader.ReadCompressedInt();
 			var properties = new List<WzImageProperty>(entryCount);
 			for (var i = 0; i < entryCount; i++) {
-				var name = reader.ReadStringBlock(offset);
+				var name = reader.ReadStringBlock(offset, parentImg.InsideListWz);
 				var ptype = reader.ReadByte();
 				switch (ptype) // header value
 				{
@@ -158,7 +159,7 @@ namespace MapleLib.WzLib {
 						properties.Add(new WzDoubleProperty(name, reader.ReadDouble()) {Parent = parent});
 						break;
 					case 8:
-						properties.Add(new WzStringProperty(name, reader.ReadStringBlock(offset)) {Parent = parent});
+						properties.Add(new WzStringProperty(name, reader.ReadStringBlock(offset, parentImg.InsideListWz)) {Parent = parent});
 						break;
 					case 9:
 						var eob = reader.ReadUInt32() + reader.BaseStream.Position;
@@ -181,7 +182,7 @@ namespace MapleLib.WzLib {
 				case 0x01:
 				case WzImage.WzImageHeaderByte_WithOffset:
 					return ExtractMore(reader, offset, name,
-						reader.ReadStringAtOffset(offset + reader.ReadInt32()), parent, imgParent);
+						reader.ReadStringAtOffset(offset + reader.ReadInt32(), imgParent.InsideListWz), parent, imgParent);
 				case 0x00:
 				case WzImage.WzImageHeaderByte_WithoutOffset:
 					return ExtractMore(reader, offset, name, "", parent, imgParent);
@@ -192,7 +193,7 @@ namespace MapleLib.WzLib {
 
 		internal static WzExtended ExtractMore(WzBinaryReader reader, uint offset, string name, string iname,
 			WzObject parent, WzImage imgParent) {
-			if (iname == "") iname = reader.ReadString();
+			if (iname == "") iname = reader.ReadString(imgParent.InsideListWz);
 
 			switch (iname) {
 				case "Property":
@@ -236,9 +237,9 @@ namespace MapleLib.WzLib {
 					reader.BaseStream.Position++;
 					switch (reader.ReadByte()) {
 						case 0:
-							return new WzUOLProperty(name, reader.ReadString()) {Parent = parent};
+							return new WzUOLProperty(name, reader.ReadString(imgParent.InsideListWz)) {Parent = parent};
 						case 1:
-							return new WzUOLProperty(name, reader.ReadStringAtOffset(offset + reader.ReadInt32()))
+							return new WzUOLProperty(name, reader.ReadStringAtOffset(offset + reader.ReadInt32(), imgParent.InsideListWz))
 								{Parent = parent};
 					}
 
@@ -250,12 +251,12 @@ namespace MapleLib.WzLib {
 			}
 		}
 
-		internal static void WriteExtendedValue(WzBinaryWriter writer, WzExtended property) {
+		internal static void WriteExtendedValue(WzBinaryWriter writer, WzExtended property, bool insideListWz) {
 			writer.Write((byte) 9);
 
 			var beforePos = writer.BaseStream.Position;
 			writer.Write(0); // Placeholder
-			property.WriteValue(writer);
+			property.WriteValue(writer, insideListWz);
 
 			var len = (int) (writer.BaseStream.Position - beforePos);
 			var newPos = writer.BaseStream.Position;

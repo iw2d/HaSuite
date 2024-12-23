@@ -143,13 +143,13 @@ namespace MapleLib.WzLib.WzProperties {
 			return ret;
 		}
 
-		public override void WriteValue(WzBinaryWriter writer) {
+		public override void WriteValue(WzBinaryWriter writer, bool insideListWz) {
 			writer.WriteStringValue("Canvas", WzImage.WzImageHeaderByte_WithoutOffset,
-				WzImage.WzImageHeaderByte_WithOffset);
+				WzImage.WzImageHeaderByte_WithOffset, insideListWz);
 			writer.Write((byte) 0);
 			if (properties.Count > 0) { // subproperty in the canvas
 				writer.Write((byte) 1);
-				WritePropertyList(writer, properties);
+				WritePropertyList(writer, properties, insideListWz);
 			} else {
 				writer.Write((byte) 0);
 			}

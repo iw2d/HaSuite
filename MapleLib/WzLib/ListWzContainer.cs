@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using Castle.Components.DictionaryAdapter.Xml;
 using MapleLib.WzLib.Util;
 using MapleLib.WzLib.WzProperties;
 
@@ -8,6 +9,8 @@ namespace MapleLib.WzLib {
 		bool LoadListWz(string file);
 
 		bool ListWzContains(string wzName, string wzEntry);
+
+		bool IsInsideListWz(string fullPath);
 	}
 
 	public class ListWzContainerImpl {
@@ -37,6 +40,17 @@ namespace MapleLib.WzLib {
 
 			return ListWzEntries.Contains(wzEntry);
 		}
+
+		public static bool IsInsideListWz(List<string> ListWzEntries, string fullPath) {
+			fullPath = fullPath.ToLower().Replace(".wz", "");
+			foreach (string entry in ListWzEntries) {
+				if (fullPath.StartsWith(entry)) {
+					return true;
+				}
+			}
+			return false;
+		}
+
 
 		public static void MarkListWzProperty(WzImage image) {
 			var wzFile = image?.WzFileParent;

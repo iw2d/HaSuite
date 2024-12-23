@@ -224,11 +224,8 @@ namespace MapleLib.WzLib {
 			    return false;
 			}*/
 			if (WzIv != null) this.WzIv = WzIv;
-
+			LoadListWz(listWzPath);
 			var result = ParseMainWzDirectory();
-			if (result == WzFileParseStatus.Success) {
-				LoadListWz(listWzPath);
-			}
 
 			return result;
 		}
@@ -1013,6 +1010,10 @@ namespace MapleLib.WzLib {
 
 		public bool ListWzContains(string wzName, string wzEntry) {
 			return ListWzContainerImpl.ListWzContains(ListWzEntries, wzName, wzEntry);
+		}
+
+		public bool IsInsideListWz(string fullPath) {
+			return ListWzContainerImpl.IsInsideListWz(ListWzEntries, fullPath);
 		}
 	}
 }

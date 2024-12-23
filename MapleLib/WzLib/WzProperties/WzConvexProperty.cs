@@ -116,7 +116,7 @@ namespace MapleLib.WzLib.WzProperties {
 			return ret;
 		}
 
-		public override void WriteValue(WzBinaryWriter writer) {
+		public override void WriteValue(WzBinaryWriter writer, bool insideListWz) {
 			var extendedProps = new List<WzExtended>(properties.Count);
 			foreach (var prop in properties) {
 				if (prop is WzExtended extended) {
@@ -125,10 +125,10 @@ namespace MapleLib.WzLib.WzProperties {
 			}
 
 			writer.WriteStringValue("Shape2D#Convex2D", WzImage.WzImageHeaderByte_WithoutOffset,
-				WzImage.WzImageHeaderByte_WithOffset);
+				WzImage.WzImageHeaderByte_WithOffset, insideListWz);
 			writer.WriteCompressedInt(extendedProps.Count);
 
-			foreach (var imgProperty in properties) imgProperty.WriteValue(writer);
+			foreach (var imgProperty in properties) imgProperty.WriteValue(writer, insideListWz);
 		}
 
 		public override void ExportXml(StreamWriter writer, int level) {

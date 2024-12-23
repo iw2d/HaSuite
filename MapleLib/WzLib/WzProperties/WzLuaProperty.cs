@@ -58,7 +58,7 @@ namespace MapleLib.WzLib.WzProperties {
 		/// </summary>
 		public override WzPropertyType PropertyType => WzPropertyType.Lua;
 
-		public override void WriteValue(WzBinaryWriter writer) {
+		public override void WriteValue(WzBinaryWriter writer, bool insideListWz) {
 			writer.Write((byte) 0x1);
 			writer.WriteCompressedInt(encryptedBytes.Length);
 			writer.Write(encryptedBytes);

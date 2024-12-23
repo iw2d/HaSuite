@@ -90,11 +90,11 @@ namespace MapleLib.WzLib.WzProperties {
 		/// </summary>
 		public override WzPropertyType PropertyType => WzPropertyType.UOL;
 
-		public override void WriteValue(WzBinaryWriter writer) {
+		public override void WriteValue(WzBinaryWriter writer, bool insideListWz) {
 			writer.WriteStringValue("UOL", WzImage.WzImageHeaderByte_WithoutOffset,
-				WzImage.WzImageHeaderByte_WithOffset);
+				WzImage.WzImageHeaderByte_WithOffset, insideListWz);
 			writer.Write((byte) 0);
-			writer.WriteStringValue(Value, 0, 1);
+			writer.WriteStringValue(Value, 0, 1, insideListWz);
 		}
 
 		public override void ExportXml(StreamWriter writer, int level) {

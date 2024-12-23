@@ -64,7 +64,7 @@ namespace MapleLib.WzLib.Util {
 		/// <param name="s"></param>
 		/// <param name="withoutOffset">bExistID_0x73   0x73</param>
 		/// <param name="withOffset">bNewID_0x1b  0x1B</param>
-		public void WriteStringValue(string s, int withoutOffset, int withOffset) {
+		public void WriteStringValue(string s, int withoutOffset, int withOffset, bool insideListWz = false) {
 			// if length is > 4 and the string cache contains the string
 			// writes the offset instead
 			if (s.Length > 4 && StringCache.ContainsKey(s)) {
@@ -73,7 +73,7 @@ namespace MapleLib.WzLib.Util {
 			} else {
 				Write((byte) withoutOffset);
 				var sOffset = (int) BaseStream.Position;
-				Write(s);
+				Write(s, insideListWz);
 				if (!StringCache.ContainsKey(s)) StringCache[s] = sOffset;
 			}
 		}
@@ -85,7 +85,7 @@ namespace MapleLib.WzLib.Util {
 		/// <param name="type"></param>
 		/// <param name="unk_GMS230"></param>
 		/// <returns>true if the Wz object value is written as an offset in the Wz file, else if not</returns>
-		public bool WriteWzObjectValue(string stringObjectValue, WzDirectoryType type) {
+		public bool WriteWzObjectValue(string stringObjectValue, WzDirectoryType type, bool insideListWz = false) {
 			var storeName = string.Format("{0}_{1}", (byte) type, stringObjectValue);
 
 			// if length is > 4 and the string cache contains the string
@@ -99,13 +99,13 @@ namespace MapleLib.WzLib.Util {
 
 			var sOffset = (int) (BaseStream.Position - Header.FStart);
 			Write((byte) type);
-			Write(stringObjectValue);
+			Write(stringObjectValue, insideListWz);
 			if (!StringCache.ContainsKey(storeName)) StringCache[storeName] = sOffset;
 
 			return false;
 		}
 
-		public override void Write(string value) {
+		public void Write(string value, bool insideListWz = false) {
 			if (value.Length == 0) {
 				Write((byte) 0);
 			} else {
@@ -126,7 +126,9 @@ namespace MapleLib.WzLib.Util {
 					var i = 0;
 					foreach (var character in value) {
 						var encryptedChar = (ushort) character;
-						encryptedChar ^= (ushort) ((WzKey[i * 2 + 1] << 8) + WzKey[i * 2]);
+						if (insideListWz) {
+							encryptedChar ^= (ushort)((WzKey[i * 2 + 1] << 8) + WzKey[i * 2]);
+						}
 						encryptedChar ^= mask;
 						mask++;
 						Write(encryptedChar);
@@ -149,7 +151,9 @@ namespace MapleLib.WzLib.Util {
 					var i = 0;
 					foreach (var c in value) {
 						var encryptedChar = (byte) c;
-						encryptedChar ^= WzKey[i];
+						if (insideListWz) {
+							encryptedChar ^= WzKey[i];
+						}
 						encryptedChar ^= mask;
 						mask++;
 						Write(encryptedChar);
